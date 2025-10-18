@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>اختبار علم الخلية - زينيث</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- الشريط العلوي -->
+  <header>
+    <div class="header-container">
+      <div class="logo">
+        <img src="zenith logo (1) (1).png" width="30">
+        <h2>نادي زينيث</h2>
+      </div>
+      
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle">
+          <i class="fas fa-moon"></i>
+        </button>
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- القسم الرئيسي -->
+  <section class="hero" id="home">
+    <div class="container">
+      <h2>مقدمة عامة حول البيولوجيا وعلم الخلية</h2>
+    </div>
+  </section>
+
+  <div class="quiz-container">
+    <div class="quiz-header">
+      <p>اختبار معلوماتك الأساسية بالإجابة على الأسئلة</p>
+      <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+      </div>
+    </div>
+    
+    <div id="quiz-content">
+      <!-- الأسئلة ستضاف هنا بالجافاسكريبت -->
+    </div>
+    
+    <div class="navigation">
+      <button class="btn btn-secondary" id="prev-btn" disabled>السابق</button>
+      <button class="btn btn-primary" id="next-btn">التالي</button>
+    </div>
+    
+    <div class="result-container" id="result-container">
+      <h2>نتيجة الاختبار</h2>
+      <div class="score" id="score"></div>
+      <p id="result-message"></p>
+      
+      <div class="correct-answers" id="correct-answers">
+        <!-- الإجابات الصحيحة ستضاف هنا -->
+      </div>
+      
+      <div class="result-actions">
+        <button class="btn btn-primary" id="restart-btn">إعادة الاختبار</button>
+        <a href="cellule1.html" class="btn btn-secondary">العودة إلى الدرس</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // الأسئلة والإجابات
+    const questions = [
+      {
+        question: "ما هي الوحدة الأساسية للحياة؟",
+        options: [
+          "النسيج",
+          "العضو",
+          "الخلية",
+          "الجزيء"
+        ],
+        answer: 2
+      },
+      {
+        question: "أي من هذه العضيات مسؤولة عن إنتاج الطاقة في الخلية؟",
+        options: [
+          "النواة",
+          "الميتوكوندريا",
+          "جهاز جولجي",
+          "الشبكة الإندوبلازمية"
+        ],
+        answer: 1
+      },
+      {
+        question: "ما اسم العملية التي تنقسم بها الخلية إلى خليتين متطابقتين؟",
+        options: [
+          "الانقسام الاختزالي",
+          "التنفس الخلوي",
+          "الانقسام المتساوي",
+          "البناء الضوئي"
+        ],
+        answer: 2
+      },
+      {
+        question: "أي من هذه الخلايا لا تحتوي على نواة؟",
+        options: [
+          "الخلية النباتية",
+          "الخلية الحيوانية",
+          "الخلية البكتيرية",
+          "الخلية الفطرية"
+        ],
+        answer: 2
+      },
+      {
+        question: "ما الوظيفة الرئيسية للريبوسومات؟",
+        options: [
+          "تخزين الماء والغذاء",
+          "تصنيع البروتينات",
+          "حماية الخلية",
+          "تنظيم حركة المواد من وإلى الخلية"
+        ],
+        answer: 1
+      }
+    ];
+
+    // متغيرات التطبيق
+    let currentQuestion = 0;
+    let selectedOption = null;
+    let score = 0;
+    const quizContent = document.getElementById('quiz-content');
+    const progressBar = document.getElementById('progress');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const resultContainer = document.getElementById('result-container');
+    const scoreElement = document.getElementById('score');
+    const resultMessage = document.getElementById('result-message');
+    const correctAnswersContainer = document.getElementById('correct-answers');
+    const restartBtn = document.getElementById('restart-btn');
+    const themeToggle = document.getElementById('themeToggle');
+
+    // تبديل الوضع الليلي
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDarkMode);
+      
+      // تغيير الأيقونة
+      const icon = themeToggle.querySelector('i');
+      if (isDarkMode) {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+      } else {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+      }
+    }
+
+    // التحقق من الوضع الليلي عند التحميل
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+      const icon = themeToggle.querySelector('i');
+      icon.classList.remove('fa-moon');
+      icon.classList.add('fa-sun');
+    }
+
+    // عرض السؤال الحالي
+    function showQuestion() {
+      const question = questions[currentQuestion];
+      
+      // تحديث شريط التقدم
+      progressBar.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+      
+      // إنشاء عناصر السؤال
+      let questionHTML = `
+        <div class="question">
+          <h3>السؤال ${currentQuestion + 1}: ${question.question}</h3>
+          <div class="options">
+      `;
+      
+      // إضافة الخيارات
+      question.options.forEach((option, index) => {
+        questionHTML += `
+          <div class="option" data-index="${index}">
+            ${option}
+          </div>
+        `;
+      });
+      
+      questionHTML += `</div></div>`;
+      quizContent.innerHTML = questionHTML;
+      
+      // إضافة أحداث النقر للخيارات
+      document.querySelectorAll('.option').forEach(option => {
+        option.addEventListener('click', function() {
+          // إزالة التحديد من جميع الخيارات
+          document.querySelectorAll('.option').forEach(opt => {
+            opt.classList.remove('selected');
+          });
+          
+          // تحديد الخيار المختار
+          this.classList.add('selected');
+          selectedOption = parseInt(this.getAttribute('data-index'));
+        });
+      });
+      
+      // تحديث أزرار التنقل
+      prevBtn.disabled = currentQuestion === 0;
+      nextBtn.textContent = currentQuestion === questions.length - 1 ? 'إنهاء' : 'التالي';
+    }
+
+    // الانتقال إلى السؤال التالي
+    function nextQuestion() {
+      if (selectedOption !== null) {
+        // التحقق من الإجابة
+        if (selectedOption === questions[currentQuestion].answer) {
+          score++;
+        }
+        
+        // الانتقال للسؤال التالي أو عرض النتيجة
+        if (currentQuestion < questions.length - 1) {
+          currentQuestion++;
+          selectedOption = null;
+          showQuestion();
+        } else {
+          showResult();
+        }
+      } else {
+        alert('الرجاء اختيار إجابة قبل المتابعة');
+      }
+    }
+
+    // العودة إلى السؤال السابق
+    function prevQuestion() {
+      if (currentQuestion > 0) {
+        currentQuestion--;
+        selectedOption = null;
+        showQuestion();
+      }
+    }
+
+    // عرض النتيجة
+    function showResult() {
+      quizContent.style.display = 'none';
+      document.querySelector('.navigation').style.display = 'none';
+      resultContainer.style.display = 'block';
+      
+      scoreElement.textContent = `لقد حصلت على ${score} من ${questions.length}`;
+      
+      // تحديد الرسالة بناء على النتيجة
+      const percentage = (score / questions.length) * 100;
+      if (percentage >= 80) {
+        resultMessage.textContent = 'ممتاز! لديك فهم رائع لأساسيات علم الخلية.';
+      } else if (percentage >= 60) {
+        resultMessage.textContent = 'جيد! لديك معرفة جيدة ولكن يمكنك تحسينها.';
+      } else if (percentage >= 40) {
+        resultMessage.textContent = 'ليس سيئاً، ولكن تحتاج إلى مراجعة المفاهيم الأساسية.';
+      } else {
+        resultMessage.textContent = 'يبدو أنك بحاجة إلى دراسة المزيد عن علم الخلية.';
+      }
+      
+      // عرض الإجابات الصحيحة
+      correctAnswersContainer.innerHTML = '<h3>الإجابات الصحيحة:</h3>';
+      questions.forEach((q, index) => {
+        correctAnswersContainer.innerHTML += `
+          <div class="correct-answer">
+            <p><strong>السؤال ${index + 1}:</strong> ${q.question}</p>
+            <p><strong>الإجابة الصحيحة:</strong> ${q.options[q.answer]}</p>
+          </div>
+        `;
+      });
+    }
+
+    // إعادة الاختبار
+    function restartQuiz() {
+      currentQuestion = 0;
+      selectedOption = null;
+      score = 0;
+      quizContent.style.display = 'block';
+      document.querySelector('.navigation').style.display = 'flex';
+      resultContainer.style.display = 'none';
+      showQuestion();
+    }
+   
+    // أحداث الأزرار
+    nextBtn.addEventListener('click', nextQuestion);
+    prevBtn.addEventListener('click', prevQuestion);
+    restartBtn.addEventListener('click', restartQuiz);
+    themeToggle.addEventListener('click', toggleDarkMode);
+
+    // بدء الاختبار
+    showQuestion();
+  </script>
+  
+  <!-- رابط Font Awesome للأيقونات -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</body>
+</html>

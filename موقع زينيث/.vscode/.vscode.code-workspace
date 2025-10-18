@@ -1,0 +1,31 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../depecom"
+		},
+		{
+			"path": "../depinfo"
+		},
+		{
+			"path": "../depita"
+		},
+		{
+			"path": "../depmath"
+		},
+		{
+			"path": "../depmusic"
+		},
+		{
+			"path": "../depphy"
+		},
+		{
+			"path": "../depscn"
+		},
+		{
+			"path": "../Skills"
+		}
+	]
+}

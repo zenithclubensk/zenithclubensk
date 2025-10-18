@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة جمع التفاحات</title>
+    <style>
+        :root {
+            --primary-color: #1f7056;     /* أخضر داكن */
+            --secondary-color: #2e6e5b;   /* أخضر زيتوني غامق */
+            --accent-color: #3ab795;      /* أخضر فاتح للتفاعل */
+            --dark-color: #272626;        /* أسود رمادي للخلفية الداكنة */
+            --light-color: #f8f9fa;       /* أبيض مائل للرمادي الفاتح */
+            --text-dark: #2b2b2b;         /* رمادي غامق للنصوص */
+            --text-light: #f1f1f1;        /* رمادي فاتح للنصوص في الوضع الليلي */
+            --transition: all 0.3s ease;  /* حركة انتقال ناعمة */
+        }
+
+        /* أنماط CSS العامة */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-color);
+            color: var(--text-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+            transition: var(--transition);
+        }
+        
+        /* شاشات اللعبة */
+        .screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 700px;
+            padding: 20px;
+        }
+        
+        /* شاشة البداية */
+        #start-screen {
+            display: flex;
+        }
+        
+        /* شاشة اللعب */
+        #game-screen {
+            display: none;
+        }
+        
+        /* شاشة النهاية */
+        #end-screen {
+            display: none;
+        }
+        
+        /* منطقة اللعب */
+        #game-area {
+            width: 100%;
+            height: 450px;
+            border: 4px solid var(--primary-color);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+            background: linear-gradient(135deg, rgba(31, 112, 86, 0.05) 0%, rgba(248, 249, 250, 0.1) 100%);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* التفاحة - تصميم محسن جداً */
+        .apple {
+            position: absolute;
+            width: 75px;
+            height: 75px;
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #ff3333 70%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 
+                inset -12px -12px 12px rgba(0, 0, 0, 0.25),
+                0 6px 12px rgba(0, 0, 0, 0.3);
+            transition: var(--transition);
+            user-select: none;
+            animation: float 3s ease-in-out infinite;
+            z-index: 10;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+        
+        /* تأثيرات مختلفة للتفاحات */
+        .apple.type-1 {
+            background: radial-gradient(circle at 30% 30%, #ff8c8c, #ff5252 70%);
+            transform: rotate(5deg);
+        }
+        
+        .apple.type-2 {
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #e53935 70%);
+            transform: rotate(-3deg);
+            width: 70px;
+            height: 70px;
+        }
+        
+        .apple.type-3 {
+            background: radial-gradient(circle at 30% 30%, #ff7d7d, #d32f2f 70%);
+            transform: rotate(2deg);
+            width: 80px;
+            height: 80px;
+        }
+        
+        .apple::before {
+            content: "";
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 20px;
+            background: linear-gradient(to bottom, #8B4513, #5D2906);
+            border-radius: 5px;
+            z-index: 11;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .apple::after {
+            content: "";
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 14px;
+            background: linear-gradient(to bottom, #32CD32, #228B22);
+            border-radius: 10px 10px 0 0;
+            z-index: 12;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* تأثير الطفو للتفاحة */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0);
+            }
+            50% {
+                transform: translateY(-8px) rotate(1deg);
+            }
+        }
+        
+        /* تأثير اللمس/النقر */
+        .apple:active {
+            transform: scale(0.85);
+            filter: brightness(1.2);
+        }
+        
+        /* الأزرار */
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border: none;
+            padding: 14px 28px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: var(--transition);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* عدادات اللعبة */
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            gap: 15px;
+        }
+        
+        .stat {
+            background-color: rgba(31, 112, 86, 0.1);
+            padding: 12px 20px;
+            border-radius: 10px;
+            flex: 1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border: 2px solid rgba(31, 112, 86, 0.2);
+        }
+        
+        /* المؤقت الكبير */
+        #timer {
+            font-size: 52px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* التعليمات */
+        .instructions {
+            background-color: rgba(31, 112, 86, 0.1);
+            padding: 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: right;
+            line-height: 1.7;
+            border: 2px solid rgba(31, 112, 86, 0.2);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .instructions h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        
+        .instructions ul {
+            list-style-type: none;
+            padding-right: 10px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            font-size: 17px;
+        }
+        
+        /* تأثيرات النقاط */
+        .points-effect {
+            position: absolute;
+            font-size: 26px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 1.2s ease-out forwards;
+            z-index: 20;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                opacity: 0.9;
+                transform: translateY(-25px) scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px) scale(1);
+            }
+        }
+        
+        /* العنوان الرئيسي */
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 36px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* التجاوب مع الشاشات المختلفة */
+        @media (max-width: 768px) {
+            #game-area {
+                height: 350px;
+            }
+            
+            .apple {
+                width: 60px;
+                height: 60px;
+                font-size: 18px;
+            }
+            
+            .apple.type-2 {
+                width: 55px;
+                height: 55px;
+            }
+            
+            .apple.type-3 {
+                width: 65px;
+                height: 65px;
+            }
+            
+            .game-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .stat {
+                min-width: auto;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            #timer {
+                font-size: 42px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #game-area {
+                height: 300px;
+            }
+            
+            .apple {
+                width: 50px;
+                height: 50px;
+                font-size: 16px;
+            }
+            
+            .apple.type-2 {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .apple.type-3 {
+                width: 55px;
+                height: 55px;
+            }
+            
+            .btn {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- شاشة البداية -->
+    <div id="start-screen" class="screen">
+        <h1>لعبة جمع التفاحات</h1>
+        <div class="instructions">
+            <h3>قواعد اللعبة:</h3>
+            <ul>
+                <li>انقر على التفاحات التي تظهر على الشاشة</li>
+                <li>التفاحة برقم زوجي: +1 نقطة</li>
+                <li>التفاحة برقم فردي: -2 نقطة</li>
+                <li>لديك 30 ثانية فقط!</li>
+                <li>تظهر عدة تفاحات في نفس الوقت - حاول جمع أكبر عدد!</li>
+                <li>كلما جمعت أكثر، تزداد سرعة ظهور التفاحات!</li>
+            </ul>
+        </div>
+        <button id="start-btn" class="btn">ابدأ اللعب</button>
+    </div>
+    
+    <!-- شاشة اللعب -->
+    <div id="game-screen" class="screen">
+        <h1>جمع التفاحات</h1>
+        <div class="game-stats">
+            <div class="stat">النقاط: <span id="score">0</span></div>
+            <div class="stat">الوقت: <span id="timer">30</span></div>
+        </div>
+        <div id="game-area"></div>
+    </div>
+    
+    <!-- شاشة النهاية -->
+    <div id="end-screen" class="screen">
+        <h1>انتهت اللعبة!</h1>
+        <div class="instructions">
+            <h3>نتيجتك النهائية:</h3>
+            <p id="final-score" style="font-size: 42px; margin: 20px 0; color: var(--primary-color);">0</p>
+            <p id="performance-message" style="font-size: 18px; margin: 10px 0;"></p>
+        </div>
+        <button id="restart-btn" class="btn">العب مرة أخرى</button>
+    </div>
+
+    <script>
+        // عناصر DOM
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const gameArea = document.getElementById('game-area');
+        const scoreElement = document.getElementById('score');
+        const timerElement = document.getElementById('timer');
+        const finalScoreElement = document.getElementById('final-score');
+        const performanceMessage = document.getElementById('performance-message');
+        
+        // متغيرات اللعبة
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval;
+        let appleInterval;
+        let apples = [];
+        let maxApples = 8; // زيادة عدد التفاحات في نفس الوقت
+        let appleGenerationSpeed = 800; // سرعة توليد التفاحات
+        
+        // بدء اللعبة
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+        
+        function startGame() {
+            // إعادة تعيين المتغيرات
+            score = 0;
+            timeLeft = 30;
+            apples = [];
+            appleGenerationSpeed = 800;
+            
+            // تحديث واجهة المستخدم
+            scoreElement.textContent = score;
+            timerElement.textContent = timeLeft;
+            gameArea.innerHTML = '';
+            
+            // تغيير الشاشات
+            startScreen.style.display = 'none';
+            endScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            
+            // بدء المؤقت
+            gameInterval = setInterval(updateTimer, 1000);
+            
+            // بدء توليد التفاحات
+            generateInitialApples();
+            appleInterval = setInterval(generateApple, appleGenerationSpeed);
+        }
+        
+        // توليد التفاحات الأولية
+        function generateInitialApples() {
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    if (apples.length < maxApples) {
+                        generateApple();
+                    }
+                }, i * 400);
+            }
+        }
+        
+        // تحديث المؤقت
+        function updateTimer() {
+            timeLeft--;
+            timerElement.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+        
+        // إنهاء اللعبة
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(appleInterval);
+            
+            // إزالة جميع التفاحات
+            apples.forEach(apple => {
+                if (apple.element && apple.element.parentNode) {
+                    apple.element.remove();
+                }
+            });
+            
+            apples = [];
+            
+            // تحديث النتيجة النهائية
+            finalScoreElement.textContent = score;
+            
+            // إضافة رسالة الأداء
+            if (score >= 20) {
+                performanceMessage.textContent = "أداء رائع! أنت محترف في جمع التفاحات!";
+                performanceMessage.style.color = "var(--primary-color)";
+            } else if (score >= 10) {
+                performanceMessage.textContent = "جيد جداً! يمكنك تحسين أدائك أكثر!";
+                performanceMessage.style.color = "var(--accent-color)";
+            } else if (score >= 0) {
+                performanceMessage.textContent = "ليس سيئاً! حاول مرة أخرى لتحسين نتيجتك!";
+                performanceMessage.style.color = "#ff9800";
+            } else {
+                performanceMessage.textContent = "لا بأس! حاول التركيز على التفاح الزوجي!";
+                performanceMessage.style.color = "#f44336";
+            }
+            
+            // تغيير الشاشات
+            gameScreen.style.display = 'none';
+            endScreen.style.display = 'flex';
+        }
+        
+        // توليد تفاحة جديدة
+        function generateApple() {
+            // إذا وصلنا للحد الأقصى من التفاحات، لا ننشئ تفاحة جديدة
+            if (apples.length >= maxApples) {
+                return;
+            }
+            
+            // إنشاء عنصر التفاحة
+            const appleElement = document.createElement('div');
+            appleElement.className = 'apple';
+            
+            // إضافة نوع عشوائي للتفاحة
+            const appleType = Math.floor(Math.random() * 3) + 1;
+            appleElement.classList.add(`type-${appleType}`);
+            
+            // توليد رقم عشوائي
+            const number = Math.floor(Math.random() * 10);
+            appleElement.textContent = number;
+            appleElement.setAttribute('data-number', number);
+            
+            // تحديد موقع عشوائي مع تجنب التداخل
+            let position;
+            let overlapping;
+            let attempts = 0;
+            
+            do {
+                overlapping = false;
+                position = getRandomPosition();
+                
+                // التحقق من التداخل مع التفاحات الأخرى
+                for (const apple of apples) {
+                    if (isOverlapping(position, apple.position)) {
+                        overlapping = true;
+                        break;
+                    }
+                }
+                
+                attempts++;
+            } while (overlapping && attempts < 25); // محاولات محدودة لتجنب التوقف اللامتناهي
+            
+            // تعيين الموضع
+            appleElement.style.left = position.x + 'px';
+            appleElement.style.top = position.y + 'px';
+            
+            // إضافة التفاحة إلى منطقة اللعب
+            gameArea.appendChild(appleElement);
+            
+            // إضافة حدث النقر
+            appleElement.addEventListener('click', () => collectApple(appleElement, number));
+            
+            // حفظ التفاحة في المصفوفة
+            const apple = {
+                element: appleElement,
+                position: position,
+                number: number
+            };
+            
+            apples.push(apple);
+            
+            // زيادة سرعة توليد التفاحات مع زيادة النقاط
+            if (score > 15 && appleGenerationSpeed > 400) {
+                appleGenerationSpeed = 400;
+                clearInterval(appleInterval);
+                appleInterval = setInterval(generateApple, appleGenerationSpeed);
+            } else if (score > 10 && appleGenerationSpeed > 500) {
+                appleGenerationSpeed = 500;
+                clearInterval(appleInterval);
+                appleInterval = setInterval(generateApple, appleGenerationSpeed);
+            } else if (score > 5 && appleGenerationSpeed > 600) {
+                appleGenerationSpeed = 600;
+                clearInterval(appleInterval);
+                appleInterval = setInterval(generateApple, appleGenerationSpeed);
+            }
+            
+            // إزالة التفاحة بعد فترة زمنية عشوائية
+            setTimeout(() => {
+                if (appleElement.parentNode) {
+                    appleElement.remove();
+                    
+                    // إزالة التفاحة من المصفوفة
+                    const index = apples.indexOf(apple);
+                    if (index > -1) {
+                        apples.splice(index, 1);
+                    }
+                }
+            }, getRandomTime(1800, 2500));
+        }
+        
+        // جمع التفاحة
+        function collectApple(appleElement, number) {
+            // التأثير المرئي
+            appleElement.style.transform = 'scale(0.8)';
+            appleElement.style.opacity = '0.5';
+            appleElement.style.filter = 'brightness(1.3)';
+            
+            // تحديث النقاط
+            let pointsChange = 0;
+            if (number % 2 === 0) {
+                // رقم زوجي: +1 نقطة
+                score += 1;
+                pointsChange = 1;
+                createPointsEffect(appleElement, '+1', 'var(--primary-color)');
+            } else {
+                // رقم فردي: -2 نقطة
+                score -= 2;
+                pointsChange = -2;
+                createPointsEffect(appleElement, '-2', '#f44336');
+            }
+            
+            // تحديث عرض النقاط
+            scoreElement.textContent = score;
+            
+            // إزالة التفاحة
+            setTimeout(() => {
+                if (appleElement.parentNode) {
+                    appleElement.remove();
+                    
+                    // إزالة التفاحة من المصفوفة
+                    const index = apples.findIndex(a => a.element === appleElement);
+                    if (index > -1) {
+                        apples.splice(index, 1);
+                    }
+                }
+            }, 200);
+        }
+        
+        // إنشاء تأثير النقاط
+        function createPointsEffect(element, text, color) {
+            const effect = document.createElement('div');
+            effect.className = 'points-effect';
+            effect.textContent = text;
+            effect.style.color = color;
+            effect.style.left = element.style.left;
+            effect.style.top = element.style.top;
+            
+            gameArea.appendChild(effect);
+            
+            // إزالة التأثير بعد انتهاء الرسوم المتحركة
+            setTimeout(() => {
+                if (effect.parentNode) {
+                    effect.remove();
+                }
+            }, 1200);
+        }
+        
+        // الحصول على وقت عشوائي
+        function getRandomTime(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // الحصول على موضع عشوائي
+        function getRandomPosition() {
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            const appleSize = 75;
+            
+            const x = Math.floor(Math.random() * (gameAreaRect.width - appleSize));
+            const y = Math.floor(Math.random() * (gameAreaRect.height - appleSize));
+            
+            return { x, y };
+        }
+        
+        // التحقق من التداخل
+        function isOverlapping(pos1, pos2) {
+            const appleSize = 75;
+            const buffer = 20; // مسافة إضافية بين التفاحات
+            
+            return !(
+                pos1.x + appleSize + buffer < pos2.x ||
+                pos1.x > pos2.x + appleSize + buffer ||
+                pos1.y + appleSize + buffer < pos2.y ||
+                pos1.y > pos2.y + appleSize + buffer
+            );
+        }
+    </script>
+</body>
+</html>
